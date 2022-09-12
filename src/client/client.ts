@@ -26,10 +26,16 @@ const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0)
 const planeGeometry = new THREE.PlaneGeometry()
 const torusKnotGeometry = new THREE.TorusKnotGeometry()
 
-const material = new THREE.MeshBasicMaterial()
-//const material= new THREE.MeshNormalMaterial()
-// material.transparent = true
-// material.opacity = 0.25
+const material = new THREE.MeshBasicMaterial() //{ color: 0x00ff00, wireframe: true })
+
+// 이미지를 불러서 도형에 비추기
+const texture = new THREE.TextureLoader().load("img/grid.png")
+material.map = texture
+// 이미지를 배경에 출력해 도형을 통해서 그 배경 이미지 확인
+const envTexture = new THREE.CubeTextureLoader().load(["img/px_50.png", "img/nx_50.png", "img/py_50.png", "img/ny_50.png", "img/pz_50.png", "img/nz_50.png"])
+envTexture.mapping = THREE.CubeReflectionMapping
+//envTexture.mapping = THREE.CubeRefractionMapping
+material.envMap = envTexture
 
 const cube = new THREE.Mesh(boxGeometry, material)
 cube.position.x = 5
@@ -68,13 +74,16 @@ const options = {
         BackSide: THREE.BackSide,
         DoubleSide: THREE.DoubleSide,
     },
+    combine: {
+        MultiplyOperation: THREE.MultiplyOperation,
+        MixOperation: THREE.MixOperation,
+        AddOperation: THREE.AddOperation,
+    },
 }
 
 const gui = new GUI()
 const materialFolder = gui.addFolder('THREE.Material')
-materialFolder
-    .add(material, 'transparent')
-    .onChange(() => (material.needsUpdate = true))
+materialFolder.add(material, 'transparent').onChange(() => material.needsUpdate = true)
 materialFolder.add(material, 'opacity', 0, 1, 0.01)
 materialFolder.add(material, 'depthTest')
 materialFolder.add(material, 'depthWrite')
@@ -87,8 +96,25 @@ materialFolder
     .onChange(() => updateMaterial())
 materialFolder.open()
 
+const data = {
+    color: material.color.getHex(),
+}
+
+const meshBasicMaterialFolder = gui.addFolder('THREE.MeshBasicMaterial')
+// 색상 변경 메뉴 추가 (rgb)
+meshBasicMaterialFolder.addColor(data, 'color').onChange(() => { material.color.setHex(Number(data.color.toString().replace('#', '0x'))) })
+//wireframe 추가
+meshBasicMaterialFolder.add(material, 'wireframe')
+//meshBasicMaterialFolder.add(material, 'wireframeLinewidth', 0, 10)
+meshBasicMaterialFolder.add(material, 'combine', options.combine).onChange(() => updateMaterial())
+// 배경 이미지 반사율 정도 조절바
+meshBasicMaterialFolder.add(material, 'reflectivity', 0, 1)
+meshBasicMaterialFolder.add(material, 'refractionRatio', 0, 1)
+meshBasicMaterialFolder.open()
+
 function updateMaterial() {
     material.side = Number(material.side)
+    material.combine = Number(material.combine)
     material.needsUpdate = true
 }
 
