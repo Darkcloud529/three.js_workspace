@@ -8,6 +8,7 @@ const scene = new THREE.Scene()
 
 scene.add(new THREE.AxesHelper(5))
 
+//LambertMesh는 빛이 필요하다. 빛이 없으면 보이지 않는다.  
 const light = new THREE.PointLight(0xffffff, 2)
 light.position.set(10, 10, 10)
 scene.add(light)
