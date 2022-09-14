@@ -4,11 +4,8 @@ import Stats from 'three/examples/jsm/libs/stats.module'
 import { GUI } from 'dat.gui'
 
 const scene = new THREE.Scene()
-//scene.background = new THREE.Color(0xff0000)
-
 scene.add(new THREE.AxesHelper(5))
 
-//LambertMesh는 빛이 필요하다. 빛이 없으면 보이지 않는다.  
 const light = new THREE.PointLight(0xffffff, 2)
 light.position.set(10, 10, 10)
 scene.add(light)
@@ -33,14 +30,15 @@ const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0)
 const planeGeometry = new THREE.PlaneGeometry()
 const torusKnotGeometry = new THREE.TorusKnotGeometry()
 
-const material = new THREE.MeshLambertMaterial()
+//MeshPhongMaterial()은 광택이 나는 나무나 반짝이는 물체를 시뮬레이션할 때 사용
+const material = new THREE.MeshPhongMaterial()
 
-// const texture = new THREE.TextureLoader().load("img/grid.png")
-// material.map = texture
-// const envTexture = new THREE.CubeTextureLoader().load(["img/px_50.png", "img/nx_50.png", "img/py_50.png", "img/ny_50.png", "img/pz_50.png", "img/nz_50.png"])
-// //envTexture.mapping = THREE.CubeReflectionMapping
-// envTexture.mapping = THREE.CubeRefractionMapping
-// material.envMap = envTexture
+const texture = new THREE.TextureLoader().load("img/grid.png")
+material.map = texture
+const envTexture = new THREE.CubeTextureLoader().load(["img/px_50.png", "img/nx_50.png", "img/py_50.png", "img/ny_50.png", "img/pz_50.png", "img/nz_50.png"])
+envTexture.mapping = THREE.CubeReflectionMapping
+//envTexture.mapping = THREE.CubeRefractionMapping
+material.envMap = envTexture
 
 const cube = new THREE.Mesh(boxGeometry, material)
 cube.position.x = 5
@@ -104,27 +102,31 @@ materialFolder.open()
 const data = {
     color: material.color.getHex(),
     emissive: material.emissive.getHex(),
+    //specular: material.specular.getHex()
 }
 
-const meshLambertMaterialFolder = gui.addFolder('THREE.MeshLambertMaterial')
-
-meshLambertMaterialFolder.addColor(data, 'color').onChange(() => {
+const meshPhongMaterialFolder = gui.addFolder('THREE.MeshPhongMaterial')
+meshPhongMaterialFolder.addColor(data, 'color').onChange(() => {
     material.color.setHex(Number(data.color.toString().replace('#', '0x')))
 })
-meshLambertMaterialFolder.addColor(data, 'emissive').onChange(() => {
+meshPhongMaterialFolder.addColor(data, 'emissive').onChange(() => {
     material.emissive.setHex(
         Number(data.emissive.toString().replace('#', '0x'))
     )
 })
-meshLambertMaterialFolder.add(material, 'wireframe')
-meshLambertMaterialFolder.add(material, 'wireframeLinewidth', 0, 10)
-//meshLambertMaterialFolder.add(material, 'flatShading').onChange(() => updateMaterial())
-meshLambertMaterialFolder
+//meshPhongMaterialFolder.addColor(data, 'specular').onChange(() => { material.specular.setHex(Number(data.specular.toString().replace('#', '0x'))) });
+meshPhongMaterialFolder.add(material, 'shininess', 0, 1024);
+meshPhongMaterialFolder.add(material, 'wireframe')
+meshPhongMaterialFolder.add(material, 'wireframeLinewidth', 0, 10)
+meshPhongMaterialFolder
+    .add(material, 'flatShading')
+    .onChange(() => updateMaterial())
+meshPhongMaterialFolder
     .add(material, 'combine', options.combine)
     .onChange(() => updateMaterial())
-meshLambertMaterialFolder.add(material, 'reflectivity', 0, 1)
-meshLambertMaterialFolder.add(material, 'refractionRatio', 0, 1)
-meshLambertMaterialFolder.open()
+meshPhongMaterialFolder.add(material, 'reflectivity', 0, 1)
+meshPhongMaterialFolder.add(material, 'refractionRatio', 0, 1)
+meshPhongMaterialFolder.open()
 
 function updateMaterial() {
     material.side = Number(material.side)
